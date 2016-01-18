@@ -44,6 +44,11 @@ for(var i=0; i < tabbrowser.browsers.length; ++i) {
   for (var j=0; j < media.length; ++j) {
      text += "\t" + escapeHTML(media[j].currentSrc) + "\n";
      text += "\t" + "currentTime: " + media[j].currentTime + "\n";
+     text += "\tBuffered ranges: [";
+     for (var l=0; l < media[j].buffered.length; ++l) {
+       text += "(" + media[j].buffered.start(l) + ", " + media[j].buffered.end(l) + ")";
+     }
+     text += "]\n";
      var ms = media[j].mozMediaSourceObject;
      if (ms) {
        for (var k=0; k < ms.sourceBuffers.length; ++k) {
@@ -55,6 +60,12 @@ for(var i=0; i < tabbrowser.browsers.length; ++i) {
        }
        text += "\tInternal Data:\n";
        var debugLines = ms.mozDebugReaderData.split("\n");
+       for(var m=0; m < debugLines.length; ++m) {
+         text += "\t" + debugLines[m] + "\n";
+       }
+     } else if (media[j].mozDebugReaderData) {
+       text += "\tInternal Data:\n";
+       var debugLines = media[j].mozDebugReaderData.split("\n");
        for(var m=0; m < debugLines.length; ++m) {
          text += "\t" + debugLines[m] + "\n";
        }
