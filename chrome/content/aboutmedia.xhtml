@@ -35,41 +35,49 @@ var mainWindow = window.QueryInterface(Components.interfaces.nsIInterfaceRequest
                        .getInterface(Components.interfaces.nsIDOMWindow);
 var tabbrowser = mainWindow.gBrowser;
 var text = "";
+var found = false;
 for(var i=0; i < tabbrowser.browsers.length; ++i) {
   var b = tabbrowser.getBrowserAtIndex(i);
   var media = b.contentDocumentAsCPOW.getElementsByTagName('video');
   if (media.length > 0) {
+    if (found) {
+      text += "\n";
+    }
+    found = true;
     text += escapeHTML(b.currentURI.spec) + "\n";
   }
   for (var j=0; j < media.length; ++j) {
-     text += "\t" + escapeHTML(media[j].currentSrc) + "\n";
-     text += "\t" + "currentTime: " + media[j].currentTime + "\n";
-     text += "\tBuffered ranges: [";
-     for (var l=0; l < media[j].buffered.length; ++l) {
-       text += "(" + media[j].buffered.start(l) + ", " + media[j].buffered.end(l) + ")";
-     }
-     text += "]\n";
-     var ms = media[j].mozMediaSourceObject;
-     if (ms) {
-       for (var k=0; k < ms.sourceBuffers.length; ++k) {
-         var sb = ms.sourceBuffers[k];
-         text += "\t\tSourceBuffer " + k + "\n";
-         for (var l=0; l < sb.buffered.length; ++l) {
-           text += "\t\t\tstart=" + sb.buffered.start(l) + " end=" + sb.buffered.end(l) + "\n";
-         }
-       }
-       text += "\tInternal Data:\n";
-       var debugLines = ms.mozDebugReaderData.split("\n");
-       for(var m=0; m < debugLines.length; ++m) {
-         text += "\t" + debugLines[m] + "\n";
-       }
-     } else if (media[j].mozDebugReaderData) {
-       text += "\tInternal Data:\n";
-       var debugLines = media[j].mozDebugReaderData.split("\n");
-       for(var m=0; m < debugLines.length; ++m) {
-         text += "\t" + debugLines[m] + "\n";
-       }
-     }
+    text += "\t" + escapeHTML(media[j].currentSrc) + "\n";
+    text += "\t" + "currentTime: " + media[j].currentTime + "\n";
+    text += "\tBuffered ranges: [";
+    for (var l=0; l < media[j].buffered.length; ++l) {
+      text += "(" + media[j].buffered.start(l) + ", " + media[j].buffered.end(l) + ")";
+    }
+    text += "]\n";
+    var ms = media[j].mozMediaSourceObject;
+    if (ms) {
+      for (var k=0; k < ms.sourceBuffers.length; ++k) {
+        var sb = ms.sourceBuffers[k];
+        text += "\t\tSourceBuffer " + k + "\n";
+        for (var l=0; l < sb.buffered.length; ++l) {
+          text += "\t\t\tstart=" + sb.buffered.start(l) + " end=" + sb.buffered.end(l) + "\n";
+        }
+      }
+      text += "\tInternal Data:\n";
+      var debugLines = ms.mozDebugReaderData.split("\n");
+      for(var m=0; m < debugLines.length; ++m) {
+        text += "\t" + debugLines[m] + "\n";
+      }
+    } else if (media[j].mozDebugReaderData) {
+      text += "\tInternal Data:\n";
+      var debugLines = media[j].mozDebugReaderData.split("\n");
+      for(var m=0; m < debugLines.length; ++m) {
+        text += "\t" + debugLines[m] + "\n";
+      }
+    }
+    if (j < media.length - 1) {
+      text += "\n";
+    }
   }
 }
 document.getElementById('data').innerHTML = text;
