@@ -53,7 +53,7 @@ for(var i=0; i < tabbrowser.browsers.length; ++i) {
     let quality = media[j].getVideoPlaybackQuality();
     let ratio = "--"
     if (quality.totalVideoFrames > 0) {
-      ratio = Math.round(100 * quality.droppedVideoFrames / quality.totalVideoFrames);
+      ratio = 100 - Math.round(100 * quality.droppedVideoFrames / quality.totalVideoFrames);
       ratio += "%";
     }
     text += "\tQuality: " + ratio;
