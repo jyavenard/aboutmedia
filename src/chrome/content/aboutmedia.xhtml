@@ -10,91 +10,34 @@
     <meta name="viewport" content="width=device-width"/>
   </head>
   <body><h1>HTMLMediaElement debug data</h1><pre id='data'></pre></body>
-<script type="application/javascript">
-<![CDATA[
-var entityMap = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': '&quot;',
-  "'": '&#39;',
-  "/": '&#x2F;'
-};
+  <script type="application/javascript">
+  <![CDATA[
 
-function escapeHTML(string) {
-  return String(string).replace(/[&<>"'\/]/g, function (s) {
-    return entityMap[s];
-  });
-}
-
-var mainWindow = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-                       .getInterface(Components.interfaces.nsIWebNavigation)
-                       .QueryInterface(Components.interfaces.nsIDocShellTreeItem)
-                       .rootTreeItem
-                       .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-                       .getInterface(Components.interfaces.nsIDOMWindow);
-var tabbrowser = mainWindow.gBrowser;
-var text = "";
-var found = false;
-for(var i=0; i < tabbrowser.browsers.length; ++i) {
-  var b = tabbrowser.getBrowserAtIndex(i);
-  var media = b.contentDocumentAsCPOW.getElementsByTagName('video');
-  if (media.length > 0) {
-    if (found) {
-      text += "\n";
-    }
-    found = true;
-    text += escapeHTML(b.currentURI.spec) + "\n";
-  }
-  for (var j=0; j < media.length; ++j) {
-    text += "\t" + escapeHTML(media[j].currentSrc) + "\n";
-    text += "\t" + "currentTime: " + media[j].currentTime + "\n";
-
-    let quality = media[j].getVideoPlaybackQuality();
-    let ratio = "--"
-    if (quality.totalVideoFrames > 0) {
-      ratio = 100 - Math.round(100 * quality.droppedVideoFrames / quality.totalVideoFrames);
-      ratio += "%";
-    }
-    text += "\tQuality: " + ratio;
-    text += " (total:" + quality.totalVideoFrames;
-    text += " dropped:" + quality.droppedVideoFrames;
-    text += " corrupted:" + quality.corruptedVideoFrames + ")\n";
-
-    text += "\tBuffered ranges: [";
-    for (var l=0; l < media[j].buffered.length; ++l) {
-      text += "(" + media[j].buffered.start(l) + ", " + media[j].buffered.end(l) + ")";
-    }
-    text += "]\n";
-
-    var ms = media[j].mozMediaSourceObject;
-    if (ms) {
-      for (var k=0; k < ms.sourceBuffers.length; ++k) {
-        var sb = ms.sourceBuffers[k];
-        text += "\t\tSourceBuffer " + k + "\n";
-        for (var l=0; l < sb.buffered.length; ++l) {
-          text += "\t\t\tstart=" + sb.buffered.start(l) + " end=" + sb.buffered.end(l) + "\n";
+  var mainWindow = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                         .getInterface(Components.interfaces.nsIWebNavigation)
+                         .QueryInterface(Components.interfaces.nsIDocShellTreeItem)
+                         .rootTreeItem
+                         .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                         .getInterface(Components.interfaces.nsIDOMWindow);
+  var tabbrowser = mainWindow.gBrowser;
+  var text = "";
+  for (var i=0; i < tabbrowser.browsers.length; ++i) {
+    var b = tabbrowser.getBrowserAtIndex(i);
+    var bmm = b.messageManager;
+    try {
+      bmm.loadFrameScript('chrome://aboutmedia/content/content.js', true);
+      bmm.addMessageListener("aboutmedia-videodetails",
+        function(m) {
+          text += m.data.details;
+          document.getElementById('data').innerHTML = text;
         }
-      }
-      text += "\tInternal Data:\n";
-      var debugLines = ms.mozDebugReaderData.split("\n");
-      for(var m=0; m < debugLines.length; ++m) {
-        text += "\t" + debugLines[m] + "\n";
-      }
-    } else if (media[j].mozDebugReaderData) {
-      text += "\tInternal Data:\n";
-      var debugLines = media[j].mozDebugReaderData.split("\n");
-      for(var m=0; m < debugLines.length; ++m) {
-        text += "\t" + debugLines[m] + "\n";
-      }
-    }
-    if (j < media.length - 1) {
-      text += "\n";
+      );
+    } catch(err) {
+      console.log("error loadFrameScript[" + i + "]:" + err.message);
     }
   }
-}
-document.getElementById('data').innerHTML = text;
-]]>
-</script>
+  document.getElementById('data').innerHTML = text;
+  ]]>
+  </script>
 
 </html>
