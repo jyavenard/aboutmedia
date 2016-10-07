@@ -27,7 +27,15 @@ function MediaDetails(media) {
 
   for (var j=0; j < media.length; ++j) {
     text += "\t" + EscapeHTML(media[j].currentSrc) + "\n";
-    text += "\t" + "currentTime: " + media[j].currentTime + "\n";
+    text += "\t" + "currentTime: " + media[j].currentTime + " readyState: " + media[j].readyState;
+    if (media[j].error) {
+      text += " error: " + media[j].error.code;
+      if ((typeof media[j].error.message === 'string' || media[j].error.message instanceof String)
+          && media[j].error.message.length > 0) {
+        text += " (" + media[j].error.message + ")";
+      }
+    }
+    text += "\n";
 
     let quality = media[j].getVideoPlaybackQuality();
     let ratio = "--"
