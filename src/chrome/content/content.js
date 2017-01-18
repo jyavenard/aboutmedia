@@ -14,16 +14,7 @@ function EscapeHTML(string) {
 }
 
 function MediaDetails(media) {
-  var text = "";
-  var found = false;
-
-  if (media.length > 0) {
-    if (found) {
-      text += "\n";
-    }
-    found = true;
-    text += EscapeHTML(content.document.location) + "\n";
-  }
+  var text = EscapeHTML(content.document.location) + "\n";
 
   for (var j=0; j < media.length; ++j) {
     text += "\t" + EscapeHTML(media[j].currentSrc) + "\n";
@@ -63,27 +54,25 @@ function MediaDetails(media) {
           text += "\t\t\tstart=" + sb.buffered.start(l) + " end=" + sb.buffered.end(l) + "\n";
         }
       }
+    }
+
+    let debugData = media[j].mozDebugReaderData;
+    if (debugData) {
       text += "\tInternal Data:\n";
-      var debugLines = ms.mozDebugReaderData.split("\n");
-      for(var m=0; m < debugLines.length; ++m) {
-        text += "\t" + debugLines[m] + "\n";
-      }
-    } else if (media[j].mozDebugReaderData) {
-      text += "\tInternal Data:\n";
-      var debugLines = media[j].mozDebugReaderData.split("\n");
-      for(var m=0; m < debugLines.length; ++m) {
-        text += "\t" + debugLines[m] + "\n";
+      for(let x of debugData.split("\n")) {
+        text += "\t" + x + "\n";
       }
     }
+
     if (j < media.length - 1) {
       text += "\n";
     }
   }
-  return text;
+
+  sendAsyncMessage("aboutmedia-videodetails", { details: text });
 }
 
 var media = content.document.getElementsByTagName("video");
 if (media.length > 0) {
-  let text = MediaDetails(media);
-  sendAsyncMessage("aboutmedia-videodetails", { details: text });
+  MediaDetails(media);
 }
