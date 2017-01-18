@@ -8,6 +8,10 @@
   <head>
     <title>about:media</title>
     <meta name="viewport" content="width=device-width"/>
+
+    <style type="text/css"><![CDATA[
+      ul { list-style-type: none; }
+    ]]></style>
   </head>
   <body><h1>HTMLMediaElement debug data</h1></body>
   <script type="application/javascript">
@@ -24,12 +28,12 @@
     var b = tabbrowser.getBrowserAtIndex(i);
     var bmm = b.messageManager;
     try {
-      let node = document.createElement("pre");
-      document.body.appendChild(node);
+      let div = document.createElement("div");
+      document.body.appendChild(div);
       bmm.loadFrameScript('chrome://aboutmedia/content/content.js', true);
       bmm.addMessageListener("aboutmedia-videodetails",
         function(m) {
-          node.innerHTML = m.data.details;
+          div.innerHTML = m.data.details;
         }
       );
     } catch(err) {
