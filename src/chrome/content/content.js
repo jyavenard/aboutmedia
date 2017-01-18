@@ -32,19 +32,19 @@ function MediaDetails(media) {
   let top = addList(null);
   let list = addList(addItem(top, content.document.location));
 
-  for (var j=0; j < media.length; ++j) {
-    addItem(list, media[j].currentSrc);
-    addItem(list, "currentTime: " + media[j].currentTime + " readyState: " + media[j].readyState);
-    if (media[j].error) {
-      let s = " error: " + media[j].error.code;
-      if ((typeof media[j].error.message === 'string' || media[j].error.message instanceof String)
-          && media[j].error.message.length > 0) {
-        s += " (" + media[j].error.message + ")";
+  for (let v of media) {
+    addItem(list, v.currentSrc);
+    addItem(list, "currentTime: " + v.currentTime + " readyState: " + v.readyState);
+    if (v.error) {
+      let s = " error: " + v.error.code;
+      if ((typeof v.error.message === 'string' || v.error.message instanceof String)
+          && v.error.message.length > 0) {
+        s += " (" + v.error.message + ")";
       }
       addItem(list, s);
     }
 
-    let quality = media[j].getVideoPlaybackQuality();
+    let quality = v.getVideoPlaybackQuality();
     let ratio = "--"
     if (quality.totalVideoFrames > 0) {
       ratio = 100 - Math.round(100 * quality.droppedVideoFrames / quality.totalVideoFrames);
@@ -56,13 +56,13 @@ function MediaDetails(media) {
                   " corrupted:" + quality.corruptedVideoFrames + ")");
 
     let s = "Buffered ranges: [";
-    for (var l=0; l < media[j].buffered.length; ++l) {
-      s += "(" + media[j].buffered.start(l) + ", " + media[j].buffered.end(l) + ")";
+    for (var l=0; l < v.buffered.length; ++l) {
+      s += "(" + v.buffered.start(l) + ", " + v.buffered.end(l) + ")";
     }
     s += "]";
     addItem(list, s);
 
-    var ms = media[j].mozMediaSourceObject;
+    var ms = v.mozMediaSourceObject;
     if (ms) {
       for (var k=0; k < ms.sourceBuffers.length; ++k) {
         var sb = ms.sourceBuffers[k];
@@ -74,7 +74,7 @@ function MediaDetails(media) {
       }
     }
 
-    let debugData = media[j].mozDebugReaderData;
+    let debugData = v.mozDebugReaderData;
     if (debugData) {
       let subList = addList(addItem(list, "Internal Data:"));
       for(let x of debugData.split("\n")) {
