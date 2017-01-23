@@ -13,77 +13,80 @@ function EscapeHTML(string) {
   });
 }
 
-function MediaDetails(media) {
-  var text = "";
-  var found = false;
-
-  if (media.length > 0) {
-    if (found) {
-      text += "\n";
-    }
-    found = true;
-    text += EscapeHTML(content.document.location) + "\n";
+function addList(parent) {
+  let list = content.document.createElement("ul");
+  if (parent) {
+    parent.appendChild(list);
   }
+  return list;
+}
 
-  for (var j=0; j < media.length; ++j) {
-    text += "\t" + EscapeHTML(media[j].currentSrc) + "\n";
-    text += "\t" + "currentTime: " + media[j].currentTime + " readyState: " + media[j].readyState;
-    if (media[j].error) {
-      text += " error: " + media[j].error.code;
-      if ((typeof media[j].error.message === 'string' || media[j].error.message instanceof String)
-          && media[j].error.message.length > 0) {
-        text += " (" + media[j].error.message + ")";
+function addItem(list, string) {
+  let i = content.document.createElement("li");
+  i.innerText = string;
+  list.appendChild(i);
+  return i;
+}
+
+function MediaDetails(media) {
+  let top = addList(null);
+  let list = addList(addItem(top, content.document.location));
+
+  for (let v of media) {
+    addItem(list, v.currentSrc);
+    addItem(list, "currentTime: " + v.currentTime + " readyState: " + v.readyState);
+    if (v.error) {
+      let s = " error: " + v.error.code;
+      if ((typeof v.error.message === 'string' || v.error.message instanceof String)
+          && v.error.message.length > 0) {
+        s += " (" + v.error.message + ")";
       }
+      addItem(list, s);
     }
-    text += "\n";
 
-    let quality = media[j].getVideoPlaybackQuality();
+    let quality = v.getVideoPlaybackQuality();
     let ratio = "--"
     if (quality.totalVideoFrames > 0) {
       ratio = 100 - Math.round(100 * quality.droppedVideoFrames / quality.totalVideoFrames);
       ratio += "%";
     }
-    text += "\tQuality: " + ratio;
-    text += " (total:" + quality.totalVideoFrames;
-    text += " dropped:" + quality.droppedVideoFrames;
-    text += " corrupted:" + quality.corruptedVideoFrames + ")\n";
+    addItem(list, "Quality: " + ratio +
+                  " (total:" + quality.totalVideoFrames +
+                  " dropped:" + quality.droppedVideoFrames +
+                  " corrupted:" + quality.corruptedVideoFrames + ")");
 
-    text += "\tBuffered ranges: [";
-    for (var l=0; l < media[j].buffered.length; ++l) {
-      text += "(" + media[j].buffered.start(l) + ", " + media[j].buffered.end(l) + ")";
+    let s = "Buffered ranges: [";
+    for (var l=0; l < v.buffered.length; ++l) {
+      s += "(" + v.buffered.start(l) + ", " + v.buffered.end(l) + ")";
     }
-    text += "]\n";
+    s += "]";
+    addItem(list, s);
 
-    var ms = media[j].mozMediaSourceObject;
+    var ms = v.mozMediaSourceObject;
     if (ms) {
       for (var k=0; k < ms.sourceBuffers.length; ++k) {
         var sb = ms.sourceBuffers[k];
-        text += "\t\tSourceBuffer " + k + "\n";
+        let s = `SourceBuffer[${k}]: `;
         for (var l=0; l < sb.buffered.length; ++l) {
-          text += "\t\t\tstart=" + sb.buffered.start(l) + " end=" + sb.buffered.end(l) + "\n";
+          s += `(${sb.buffered.start(l)}, ${sb.buffered.end(l)})`;
         }
-      }
-      text += "\tInternal Data:\n";
-      var debugLines = ms.mozDebugReaderData.split("\n");
-      for(var m=0; m < debugLines.length; ++m) {
-        text += "\t" + debugLines[m] + "\n";
-      }
-    } else if (media[j].mozDebugReaderData) {
-      text += "\tInternal Data:\n";
-      var debugLines = media[j].mozDebugReaderData.split("\n");
-      for(var m=0; m < debugLines.length; ++m) {
-        text += "\t" + debugLines[m] + "\n";
+        addItem(list, s);
       }
     }
-    if (j < media.length - 1) {
-      text += "\n";
+
+    let debugData = v.mozDebugReaderData;
+    if (debugData) {
+      let subList = addList(addItem(list, "Internal Data:"));
+      for(let x of debugData.split("\n")) {
+        addItem(subList, x);
+      }
     }
   }
-  return text;
+
+  sendAsyncMessage("aboutmedia-videodetails", { details: top.outerHTML });
 }
 
 var media = content.document.getElementsByTagName("video");
 if (media.length > 0) {
-  let text = MediaDetails(media);
-  sendAsyncMessage("aboutmedia-videodetails", { details: text });
+  MediaDetails(media);
 }
