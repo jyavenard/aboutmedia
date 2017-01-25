@@ -74,16 +74,21 @@ function MediaDetails(media) {
       }
     }
 
-    let debugData = v.mozDebugReaderData;
-    if (debugData) {
+    function postData(str) {
       let subList = addList(addItem(list, "Internal Data:"));
-      for(let x of debugData.split("\n")) {
+      for(let x of str.split("\n")) {
         addItem(subList, x);
       }
+      sendAsyncMessage("aboutmedia-videodetails", { details: top.outerHTML });
+    }
+
+    if ("mozRequestDebugInfo" in v) {
+      v.mozRequestDebugInfo().then(postData);
+    } else {
+      // backward compatibility.
+      postData(v.mozDebugReaderData);
     }
   }
-
-  sendAsyncMessage("aboutmedia-videodetails", { details: top.outerHTML });
 }
 
 var media = content.document.getElementsByTagName("video");
